@@ -1,0 +1,1 @@
+-- 5 rooms with the smallest average age of students

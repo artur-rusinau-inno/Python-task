@@ -10,10 +10,12 @@ BASE_DIR = Path(__file__).parents[2]
 ROOMS_DATA_FILE_PATH = BASE_DIR / "input data" / "rooms.json"
 STUDENTS_DATA_FILE_PATH = BASE_DIR / "input data" / "students.json"
 
-OUTPUT_FOLDER_PATH = os.getenv("OUTPUT_PATH", BASE_DIR / "output_data")
-OUTPUT_FORMATS_AVAILABLE = list(
-    os.getenv("OUTPUT_FORMATS_AVAILABLE", "json xml").split()
+OUTPUT_FOLDER_PATH = os.getenv("OUTPUT_PATH", BASE_DIR / "output data")
+OUTPUT_FORMATS_AVAILABLE = (
+    os.getenv("OUTPUT_FORMATS_AVAILABLE", "json xml").lower().split()
 )
+
+SQL_SCRIPTS_FOLDER = BASE_DIR / "src" / "scripts"
 
 DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password123")
 DB_USER = os.getenv("POSTGRES_USER", "postgres")

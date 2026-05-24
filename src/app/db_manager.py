@@ -1,6 +1,6 @@
 import psycopg2
 from psycopg2.extensions import connection
-from psycopg2.extras import execute_batch
+from psycopg2.extras import RealDictCursor, execute_batch
 
 from src.config.settings import DB_CONNECTIONS_DICT
 
@@ -38,7 +38,7 @@ class DBManager:
 
     def execute_query(self, query: str, vars: tuple | dict = None):
         with self.connection as conn:
-            with conn.cursor() as cursor:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(query, vars)
                 if cursor.description:
                     return cursor.fetchall()

@@ -22,7 +22,7 @@ class FileManager:
 
     @staticmethod
     def _save_to_json(fetched_data: list[dict], file):
-        json.dump(fetched_data, file, indent=4)
+        json.dump(fetched_data, file, indent=4, default=str)
 
     @staticmethod
     def _save_to_xml(fetched_data: list[dict], file):

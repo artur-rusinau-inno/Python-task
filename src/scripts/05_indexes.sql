@@ -1,1 +1,0 @@
--- SQL query that adds the required indexes

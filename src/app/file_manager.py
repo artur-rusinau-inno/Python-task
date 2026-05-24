@@ -26,12 +26,12 @@ class FileManager:
 
     @staticmethod
     def _save_to_xml(fetched_data: list[dict], file):
-        # mapping = "room"
-        # if "birthday" in fetched_data[0]:
-        #     mapping = "student"
+        mapping = "room"
+        if "sex" in fetched_data[0]:
+            mapping = "student"
 
-        # xmltodict.unparse({"all": {mapping: fetched_data}}, file, pretty=True)
-        xmltodict.unparse({"items": {"item": fetched_data}}, file, pretty=True)
+        xmltodict.unparse({"all": {mapping: fetched_data}}, file, pretty=True)
+        # xmltodict.unparse({"items": {"item": fetched_data}}, file, pretty=True)
 
     @staticmethod
     def save(

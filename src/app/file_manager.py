@@ -8,11 +8,11 @@ from src.config.settings import OUTPUT_FOLDER_PATH, OUTPUT_FORMATS_AVAILABLE
 
 class FileManager:
     @staticmethod
-    def read_path(input_path: str | Path) -> list[dict]:
+    def read(input_path: Path) -> list[dict]:
         try:
             path = Path(input_path)
         except Exception as e:
-            print("invalid path")
+            print("Invalid path")
             raise e
 
         with open(path) as f:
@@ -26,29 +26,39 @@ class FileManager:
 
     @staticmethod
     def _save_to_xml(fetched_data: list[dict], file):
-        mapping = "room"
-        if "birthday" in fetched_data[0]:
-            mapping = "student"
+        # mapping = "room"
+        # if "birthday" in fetched_data[0]:
+        #     mapping = "student"
 
-        xmltodict.unparse({"ALL": {mapping: fetched_data}}, file, pretty=True)
+        # xmltodict.unparse({"all": {mapping: fetched_data}}, file, pretty=True)
+        xmltodict.unparse({"items": {"item": fetched_data}}, file, pretty=True)
 
     @staticmethod
     def save(
         fetched_data: list[dict],
-        output_path: str | Path = OUTPUT_FOLDER_PATH,
-        file_format: str = "json",
+        output_path: Path = OUTPUT_FOLDER_PATH,
+        output_file_name: str = "output",
+        output_file_format: str = "json",
     ):
-        file_format = file_format.lower()
+        if not output_path.exists():
+            output_path.mkdir(parents=True, exist_ok=True)
+
+        file_format = output_file_format.lower()
+
         if file_format not in OUTPUT_FORMATS_AVAILABLE:
-            raise ValueError("unknown file format")
+            raise ValueError(f'Unknown "{file_format.upper()}" format')
+
         mapping = {"json": FileManager._save_to_json, "xml": FileManager._save_to_xml}
 
         try:
-            with open(Path(output_path) / f"output.{file_format}", "a") as file:
+            output_file = Path(output_path) / f"{output_file_name}.{output_file_format}"
+            with open(output_file, "w") as file:
                 mapping[file_format](fetched_data, file)
         except Exception as e:
             print(f'ERROR while saving via "{file_format.upper()}" format')
             raise e
+
+        return output_file
 
     @staticmethod
     def clear_output_folder():
@@ -58,7 +68,4 @@ class FileManager:
                     if item.is_file():
                         item.unlink()
         except FileNotFoundError:
-            print("output folder is empty")
-
-
-file_manager = FileManager()
+            print("Output folder is empty")

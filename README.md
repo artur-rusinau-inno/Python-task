@@ -5,10 +5,13 @@
 git clone https://github.com/artur-rusinau-inno/Python-task.git
 uv sync
 ```
-### С помощью pip
+### С помощью pip (серьезно? в 2026?)
 ```bash
 git clone https://github.com/artur-rusinau-inno/Python-task.git
-pip install requirements.txt
+python -m venv .venv
+.venv\scripts\activate # для Windows
+source .venv/bin/activate # для Linux/Mac
+pip install -r requirements.txt
 ```
 # 2. Настройка
 ---
@@ -21,23 +24,17 @@ cp .env.example .env
 
 # 3. Запуск
 ---
-### С помощью uv
-1) Поднимаем контейнер с PostgreSQL
+- Поднимаем контейнер с PostgreSQL
 ```bash
 docker-compose up -d
 ```
-2) Запуск основной программы
+- Запуск основной программы
+### UV
 ```bash
 uv run python -m src.app --rooms path/to/file.json --students path/to/file.json --format json
 ```
-поле format необязательно, по умолчанию используется json
-### С помощью pip
-1) Поднимаем контейнер с PostgreSQL
-```bash
-docker-compose up -d
-```
-2) Запуск основной программы
+### PIP
 ```bash
 python -m src.app --rooms path/to/file.json --students path/to/file.json --format json
 ```
-поле format необязательно, по умолчанию используется json
+поле format в обоих случаях необязательно, по умолчанию используется json

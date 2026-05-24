@@ -10,7 +10,7 @@ class DBManager:
         self.connection: connection = psycopg2.connect(**db_dict)
 
     def init_db(self):
-        result = self._execute_query("SELECT 1")
+        result = self.execute_query("SELECT 1")
         if result:
             print("PostgreSQL connected successfully")
         else:
@@ -19,7 +19,7 @@ class DBManager:
         self._create_tables()
 
     # def insert_data(self, table: str, schema: str, data: list[dict]):
-    #     self._execute_query(f"INSERT INTO {table} VALUES({schema})", data)
+    #     self.execute_query(f"INSERT INTO {table} VALUES({schema})", data)
 
     def insert_rooms(self, rooms: list[dict] = None):
         self._insert_many(
@@ -33,10 +33,10 @@ class DBManager:
         )
 
     def clear_data(self):
-        self._execute_query("DROP TABLE students")
-        self._execute_query("DROP TABLE rooms")
+        self.execute_query("DROP TABLE IF EXISTS students")
+        self.execute_query("DROP TABLE IF EXISTS rooms")
 
-    def _execute_query(self, query, vars: tuple | dict = None):
+    def execute_query(self, query: str, vars: tuple | dict = None):
         with self.connection as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, vars)
@@ -45,14 +45,14 @@ class DBManager:
                 return
 
     def _create_tables(self):
-        self._execute_query(
+        self.execute_query(
             "CREATE TABLE IF NOT EXISTS rooms (id INT PRIMARY KEY, name VARCHAR(255))"
         )
-        self._execute_query(
+        self.execute_query(
             "CREATE TABLE IF NOT EXISTS students (birthday DATE, id INT PRIMARY KEY, name VARCHAR(255), room INT REFERENCES rooms(id), sex VARCHAR(1))"
         )
 
-    def _insert_many(self, query, var_list):
+    def _insert_many(self, query: str, var_list: list):
         with self.connection as conn:
             with conn.cursor() as cursor:
                 execute_batch(cursor, query, var_list, page_size=1000)

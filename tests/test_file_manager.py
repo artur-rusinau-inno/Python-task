@@ -28,12 +28,10 @@ def test_file_manager_save(tmp_path, rooms_data, students_data):
     rooms_file = FileManager.save(rooms_data, tmp_path, "json")
     students_file = FileManager.save(students_data, tmp_path, "xml")
 
-    print(rooms_file.read_text())
-
     assert rooms_file.exists()
     assert students_file.exists()
 
 
 def test_unknown_format(tmp_path, rooms_data):
     with pytest.raises(ValueError):
-        FileManager.save(rooms_data, tmp_path, "XXX")
+        FileManager.save(rooms_data, tmp_path, output_file_format="XXX")

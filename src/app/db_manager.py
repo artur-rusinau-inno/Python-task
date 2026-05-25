@@ -7,7 +7,7 @@ from src.config.settings import DB_CONNECTIONS_DICT
 
 class DBManager:
     def __init__(self, db_dict: dict[str, str | int]):
-        self.connection: connection = psycopg2.connect(**db_dict)
+        self._connection: connection = psycopg2.connect(**db_dict)
 
     def init_db(self):
         result = self.execute_query("SELECT 1")
@@ -17,6 +17,7 @@ class DBManager:
             raise RuntimeError("PostgreSQL connection failure")
 
         self._create_tables()
+        return True
 
     # def insert_data(self, table: str, schema: str, data: list[dict]):
     #     self.execute_query(f"INSERT INTO {table} VALUES({schema})", data)
@@ -37,7 +38,7 @@ class DBManager:
         self.execute_query("DROP TABLE IF EXISTS rooms")
 
     def execute_query(self, query: str, vars: tuple | dict = None):
-        with self.connection as conn:
+        with self._connection as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
                 cursor.execute(query, vars)
                 if cursor.description:
@@ -53,7 +54,7 @@ class DBManager:
         )
 
     def _insert_many(self, query: str, var_list: list):
-        with self.connection as conn:
+        with self._connection as conn:
             with conn.cursor() as cursor:
                 execute_batch(cursor, query, var_list, page_size=1000)
 

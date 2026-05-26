@@ -1,3 +1,4 @@
+import asyncio
 import json
 import random
 import string
@@ -8,77 +9,102 @@ import xmltodict
 from src.config.settings import OUTPUT_FOLDER_PATH, OUTPUT_FORMATS_AVAILABLE
 
 
-def get_random_name() -> str:
-    name = random.choices(string.ascii_letters, k=10)
-    result = f"output_{''.join(name)}"
-    return result
-
-
 class FileManager:
-    @staticmethod
-    def read(input_path: Path) -> list[dict]:
+    def __init__(self):
+        self._background_tasks = set()
+
+    def read_json(self, input_path: Path | str) -> list[dict]:
         try:
-            path = Path(input_path)
+            self.input_path: Path = Path(input_path)
+
+        except TypeError:
+            raise TypeError("INVALID PATH FORMAT")
+
+        text: str | None = self.input_path.read_text()
+
+        try:
+            self.data: list[dict] = json.loads(
+                text
+            )  ############# СДЕЛАТЬ БАТЧИ ДЛЯ ЛОКАЛЬНОЙ ЗАГРУЗКИ 20 МЛН СТРОК
         except Exception as e:
-            print("Invalid path")
+            print("ERROR WHILE DESERIALIZING JSON")
             raise e
 
-        file = path.read_text()
-        data: list[dict] = json.loads(file)
+        return self.data
 
-        return data
+    def read_fetched_data(self, fetched_data: list[dict]) -> None:
+        self.input_path = None
+        self.data: list[dict] = fetched_data
 
-    @staticmethod
-    def _save_to_json(fetched_data: list[dict], output_file: Path) -> None:
-        json_string = json.dumps(fetched_data, indent=4, default=str)
-        output_file.write_text(json_string)
-
-    @staticmethod
-    def _save_to_xml(fetched_data: list[dict], output_file: Path) -> None:
-        mapping = "room"
-        if "sex" in fetched_data[0]:
-            mapping = "student"
-        xml_string = xmltodict.unparse({"all": {mapping: fetched_data}}, pretty=True)
-
-        output_file.write_text(xml_string)
-
-    @staticmethod
     def save(
-        fetched_data: list[dict],
+        self,
         output_path: Path = OUTPUT_FOLDER_PATH,
         output_file_name: str = None,
         output_file_format: str = "json",
     ) -> Path:
+
         if not output_path.exists():
             output_path.mkdir(parents=True, exist_ok=True)
 
         if not output_file_name:
-            output_file_name = get_random_name()
+            output_file_name: str = self._get_random_name()
 
-        file_format = output_file_format.lower()
+        output_file_format: str = output_file_format.lower()
 
-        if file_format not in OUTPUT_FORMATS_AVAILABLE:
-            raise ValueError(f'Unknown "{file_format.upper()}" format')
-
-        mapping = {"json": FileManager._save_to_json, "xml": FileManager._save_to_xml}
+        if output_file_format not in OUTPUT_FORMATS_AVAILABLE:
+            raise ValueError(f'UNKNOWN "{output_file_format.upper()}" FORMAT')
 
         try:
-            output_file = Path(output_path) / f"{output_file_name}.{file_format}"
+            output_file: Path = output_path / f"{output_file_name}.{output_file_format}"
 
-            mapping[file_format](fetched_data, output_file)
+            match output_file_format:
+                case "json":
+                    self._save_to_json(output_file)
+                case "xml":
+                    self._save_to_xml(output_file)
+                case _:
+                    raise ValueError(f'FORMAT "{output_file_format.upper()}" NOT SET')
 
         except Exception as e:
-            print(f'ERROR while saving via "{file_format.upper()}" format')
+            print("UNKNOWN EROR")
             raise e
 
         return output_file
 
+    async def clear_output_folder(self, folder_path: Path, minutes: int) -> None:
+        if not folder_path.exists():
+            return
+
+        task = asyncio.create_task(self._task_for_delete(folder_path, minutes))
+        self._background_tasks.add(task)
+        task.add_done_callback(
+            self._background_tasks.discard
+        )  # add_done_callback содержит "магию" внутри, он сам подставляет таску первым аргументом в discard
+
     @staticmethod
-    def clear_output_folder() -> None:
-        try:
-            if OUTPUT_FOLDER_PATH.exists():
-                for item in OUTPUT_FOLDER_PATH.iterdir():
-                    if item.is_file():
-                        item.unlink()
-        except FileNotFoundError:
-            print("Output folder is empty")
+    def _get_random_name() -> str:
+        symbols = string.ascii_letters + string.digits
+        name: list[str] = random.choices(symbols, k=10)
+        result: str = f"output_{''.join(name)}"
+        return result
+
+    def _save_to_json(self, output_file: Path) -> None:
+        json_string = json.dumps(self.data, indent=4, default=str)
+        output_file.write_text(json_string)
+
+    def _save_to_xml(self, output_file: Path) -> None:
+        xml_string = xmltodict.unparse({"items": {"item": self.data}}, pretty=True)
+        output_file.write_text(xml_string)
+
+    def _sync_deleting(self, folder_path: Path) -> None:
+        for item in folder_path.iterdir():
+            if not item.is_file():
+                continue
+            try:
+                item.unlink()
+            except Exception as e:
+                print(f"CANNOT DELETE FILE {item.name}\n{e}")
+
+    async def _task_for_delete(self, folder_path: Path, minutes: int) -> None:
+        await asyncio.sleep(minutes * 60)
+        await asyncio.to_thread(self._sync_deleting, folder_path)

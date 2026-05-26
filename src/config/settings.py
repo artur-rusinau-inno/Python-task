@@ -10,8 +10,8 @@ BASE_DIR = Path(__file__).parents[2]
 ROOMS_DATA_FILE_PATH = BASE_DIR / "input data" / "rooms.json"
 STUDENTS_DATA_FILE_PATH = BASE_DIR / "input data" / "students.json"
 
-OUTPUT_FOLDER_PATH = os.getenv("OUTPUT_PATH", BASE_DIR / "output data")
-OUTPUT_FORMATS_AVAILABLE = (
+OUTPUT_FOLDER_PATH = Path(os.getenv("OUTPUT_PATH", BASE_DIR / "output data"))
+OUTPUT_FORMATS_AVAILABLE = Path(
     os.getenv("OUTPUT_FORMATS_AVAILABLE", "json xml").lower().split()
 )
 

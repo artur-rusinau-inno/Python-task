@@ -1,62 +1,45 @@
-import psycopg2
-from psycopg2.extensions import connection
-from psycopg2.extras import RealDictCursor, execute_batch
+import asyncpg
 
 from src.config.settings import DB_CONNECTIONS_DICT
 
 
 class DBManager:
-    def __init__(self, db_dict: dict[str, str | int]):
-        self._connection: connection = psycopg2.connect(**db_dict)
+    def __init__(self, db_dict: dict[str, str | int]) -> None:
+        self.connection: asyncpg.Connection = None
+        self.db_dict = db_dict
 
-    def init_db(self):
-        result = self.execute_query("SELECT 1")
-        if result:
-            print("PostgreSQL connected successfully")
-        else:
-            raise RuntimeError("PostgreSQL connection failure")
+    async def db_connect(self) -> None:
+        self.connection = await asyncpg.connect(**self.db_dict)
+        print("PostgreSQL connected successfully")
 
-        self._create_tables()
-        return True
+    # async def insert_rooms(self, rooms: list[dict]) -> None:
+    #     await self.connection.executemany(
+    #         "INSERT INTO rooms (id, name) VALUES (%(id)s, %(name)s)", rooms
+    #     )
 
-    # def insert_data(self, table: str, schema: str, data: list[dict]):
-    #     self.execute_query(f"INSERT INTO {table} VALUES({schema})", data)
+    # async def insert_students(self, students: list[dict]) -> None:
+    #     await self.connection.executemany(
+    #         "INSERT INTO students (birthday, id, name, room, sex) VALUES (%(birthday)s, %(id)s, %(name)s, %(room)s, %(sex)s)",
+    #         students,
+    #     )
 
-    def insert_rooms(self, rooms: list[dict] = None):
-        self._insert_many(
-            "INSERT INTO rooms (id, name) VALUES (%(id)s, %(name)s)", rooms
-        )
+    async def insert_many_query(self, table_name: str, args: list[dict]):
+        columns = ", ".join(args[0].keys())
+        values_count = ", ".join([f"${i}" for i in range(1, len(args[0].values()) + 1)])
+        query = f"INSERT INTO {table_name} ({columns}) VALUES ({values_count})"
+        await self.connection.executemany(query, [tuple(d.values()) for d in args])
 
-    def insert_students(self, students: list[dict] = None):
-        self._insert_many(
-            "INSERT INTO students (birthday, id, name, room, sex) VALUES (%(birthday)s, %(id)s, %(name)s, %(room)s, %(sex)s)",
-            students,
-        )
+    async def clear_data(self) -> None:
+        self.connection.execute("DROP TABLE IF EXISTS students")
+        self.connection.execute("DROP TABLE IF EXISTS rooms")
 
-    def clear_data(self):
-        self.execute_query("DROP TABLE IF EXISTS students")
-        self.execute_query("DROP TABLE IF EXISTS rooms")
-
-    def execute_query(self, query: str, vars: tuple | dict = None):
-        with self._connection as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute(query, vars)
-                if cursor.description:
-                    return cursor.fetchall()
-                return
-
-    def _create_tables(self):
-        self.execute_query(
+    async def init_db(self) -> None:
+        self.connection.execute(
             "CREATE TABLE IF NOT EXISTS rooms (id INT PRIMARY KEY, name VARCHAR(255))"
         )
-        self.execute_query(
+        self.connection.execute(
             "CREATE TABLE IF NOT EXISTS students (birthday DATE, id INT PRIMARY KEY, name VARCHAR(255), room INT REFERENCES rooms(id), sex VARCHAR(1))"
         )
-
-    def _insert_many(self, query: str, var_list: list):
-        with self._connection as conn:
-            with conn.cursor() as cursor:
-                execute_batch(cursor, query, var_list, page_size=1000)
 
 
 db_manager = DBManager(DB_CONNECTIONS_DICT)

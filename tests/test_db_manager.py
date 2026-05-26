@@ -12,10 +12,12 @@ db_dict = {
 
 
 @pytest.fixture
-def db():
-    return DBManager(db_dict)
+async def db():
+    db = DBManager(db_dict)
+    await db.db_connect()
+    return db
 
 
-def test_init(db: DBManager):
-    inited = db.init_db()
-    assert inited is True
+async def test_db_connection(db: DBManager):
+    result = await db.connection.fetchval("SELECT 1")
+    assert result

@@ -10,18 +10,17 @@ class DBManager:
 
     async def db_connect(self) -> None:
         self.connection = await asyncpg.connect(**self.db_dict)
-        print("PostgreSQL connected successfully")
 
     # async def insert_rooms(self, rooms: list[dict]) -> None:
     #     await self.connection.executemany(
-    #         "INSERT INTO rooms (id, name) VALUES (%(id)s, %(name)s)", rooms
+    #         "INSERT INTO rooms (id, name) VALUES (%1, %2)", rooms
     #     )
 
     # async def insert_students(self, students: list[dict]) -> None:
     #     await self.connection.executemany(
-    #         "INSERT INTO students (birthday, id, name, room, sex) VALUES (%(birthday)s, %(id)s, %(name)s, %(room)s, %(sex)s)",
-    #         students,
-    #     )
+    #         "INSERT INTO students (birthday, id, name, room, sex) VALUES ($1, $2, $3, $4, $5)",
+    #         [tuple(d.values()) for d in students],
+    # )
 
     async def insert_many_query(self, table_name: str, args: list[dict]):
         columns = ", ".join(args[0].keys())
@@ -30,15 +29,15 @@ class DBManager:
         await self.connection.executemany(query, [tuple(d.values()) for d in args])
 
     async def clear_data(self) -> None:
-        self.connection.execute("DROP TABLE IF EXISTS students")
-        self.connection.execute("DROP TABLE IF EXISTS rooms")
+        await self.connection.execute("DROP TABLE IF EXISTS students")
+        await self.connection.execute("DROP TABLE IF EXISTS rooms")
 
     async def init_db(self) -> None:
-        self.connection.execute(
+        await self.connection.execute(
             "CREATE TABLE IF NOT EXISTS rooms (id INT PRIMARY KEY, name VARCHAR(255))"
         )
-        self.connection.execute(
-            "CREATE TABLE IF NOT EXISTS students (birthday DATE, id INT PRIMARY KEY, name VARCHAR(255), room INT REFERENCES rooms(id), sex VARCHAR(1))"
+        await self.connection.execute(
+            "CREATE TABLE IF NOT EXISTS students (birthday TIMESTAMP, id INT PRIMARY KEY, name VARCHAR(255), room INT REFERENCES rooms(id), sex VARCHAR(1))"
         )
 
 

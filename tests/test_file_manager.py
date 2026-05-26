@@ -25,8 +25,11 @@ def students_data():
 
 
 def test_file_manager_save(tmp_path, rooms_data, students_data):
-    rooms_file = FileManager.save(rooms_data, tmp_path, "json")
-    students_file = FileManager.save(students_data, tmp_path, "xml")
+    rooms_obj = FileManager().read_fetched_data(rooms_data)
+    rooms_file = rooms_obj.save(tmp_path, output_file_format="json")
+
+    students_obj = FileManager().read_fetched_data(students_data)
+    students_file = students_obj.save(tmp_path, output_file_format="json")
 
     assert rooms_file.exists()
     assert students_file.exists()
@@ -34,4 +37,5 @@ def test_file_manager_save(tmp_path, rooms_data, students_data):
 
 def test_unknown_format(tmp_path, rooms_data):
     with pytest.raises(ValueError):
-        FileManager.save(rooms_data, tmp_path, output_file_format="XXX")
+        obj = FileManager().read_fetched_data(rooms_data)
+        obj.save(tmp_path, output_file_format="mp3")

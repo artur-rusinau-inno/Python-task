@@ -3,6 +3,7 @@ import json
 import random
 import string
 from pathlib import Path
+from typing import Self
 
 import xmltodict
 
@@ -13,7 +14,7 @@ class FileManager:
     def __init__(self):
         self._background_tasks = set()
 
-    def read_json(self, input_path: Path | str) -> list[dict]:
+    def read_json_path(self, input_path: Path | str) -> Self:
         try:
             self.input_path: Path = Path(input_path)
 
@@ -23,18 +24,18 @@ class FileManager:
         text: str | None = self.input_path.read_text()
 
         try:
-            self.data: list[dict] = json.loads(
-                text
-            )  ############# СДЕЛАТЬ БАТЧИ ДЛЯ ЛОКАЛЬНОЙ ЗАГРУЗКИ 20 МЛН СТРОК
+            self.data: list[dict] = json.loads(text)
+            ############# СДЕЛАТЬ БАТЧИ ДЛЯ ЛОКАЛЬНОЙ ЗАГРУЗКИ 20 МЛН СТРОК
         except Exception as e:
             print("ERROR WHILE DESERIALIZING JSON")
             raise e
 
-        return self.data
+        return self
 
-    def read_fetched_data(self, fetched_data: list[dict]) -> None:
+    def read_fetched_data(self, fetched_data: list[dict]) -> Self:
         self.input_path = None
         self.data: list[dict] = fetched_data
+        return self
 
     def save(
         self,
@@ -71,7 +72,9 @@ class FileManager:
 
         return output_file
 
-    async def clear_output_folder(self, folder_path: Path, minutes: int) -> None:
+    async def clear_output_folder(
+        self, folder_path: Path = OUTPUT_FOLDER_PATH, minutes: int = 0
+    ) -> None:
         if not folder_path.exists():
             return
 

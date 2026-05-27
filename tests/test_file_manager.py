@@ -1,6 +1,6 @@
 import pytest
 
-from src.app.file_manager import FileManager
+from managers.file_manager import FileManager
 
 
 @pytest.fixture

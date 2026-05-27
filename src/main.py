@@ -4,8 +4,8 @@ from pathlib import Path
 import asyncpg
 import typer
 
-from src.app.db_manager import DBManager
-from src.app.file_manager import FileManager
+from managers.db_manager import DBManager
+from managers.file_manager import FileManager
 from src.config.settings import settings
 
 app = typer.Typer()

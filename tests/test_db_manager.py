@@ -1,6 +1,6 @@
 import pytest
 
-from src.app.db_manager import DBManager
+from managers.db_manager import DBManager
 from src.config.settings import settings
 
 

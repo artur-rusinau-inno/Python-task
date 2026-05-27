@@ -26,8 +26,6 @@ class DBManager:
             for row in fetched_data:
                 row["birthday"] = datetime.datetime.fromisoformat(row["birthday"])
 
-        batch = []
-
         records = [tuple(row.values()) for row in fetched_data]
 
         await self.connection.copy_records_to_table(

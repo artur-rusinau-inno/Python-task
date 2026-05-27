@@ -26,6 +26,7 @@ class FileManager:
         try:
             self.data: list[dict] = json.loads(text)
             ############# СДЕЛАТЬ БАТЧИ ДЛЯ ЛОКАЛЬНОЙ ЗАГРУЗКИ 20 МЛН СТРОК
+
         except Exception as e:
             print("ERROR WHILE DESERIALIZING JSON")
             raise e
@@ -73,12 +74,12 @@ class FileManager:
         return output_file
 
     async def clear_output_folder(
-        self, folder_path: Path = settings.OUTPUT_FOLDER_PATH, minutes: int = 0
+        self, folder_path: Path = settings.OUTPUT_FOLDER_PATH, seconds: int = 0
     ) -> None:
         if not folder_path.exists():
             return
 
-        task = asyncio.create_task(self._task_for_delete(folder_path, minutes))
+        task = asyncio.create_task(self._task_for_delete(folder_path, seconds))
         self._background_tasks.add(task)
         task.add_done_callback(
             self._background_tasks.discard
@@ -108,6 +109,6 @@ class FileManager:
             except Exception as e:
                 print(f"CANNOT DELETE FILE {item.name}\n{e}")
 
-    async def _task_for_delete(self, folder_path: Path, minutes: int) -> None:
-        await asyncio.sleep(minutes * 60)
+    async def _task_for_delete(self, folder_path: Path, seconds: int) -> None:
+        await asyncio.sleep(seconds)
         await asyncio.to_thread(self._sync_deleting, folder_path)

@@ -1,3 +1,5 @@
+import datetime
+
 import asyncpg
 
 
@@ -15,16 +17,24 @@ class DBManager:
     async def db_connect(self) -> None:
         self.connection = await asyncpg.connect(self.db_dsn)
 
-    async def insert_many_query(self, table_name: str, args: list[dict]):
-        columns = ", ".join(args[0].keys())
-        values_count = ", ".join([f"${i}" for i in range(1, len(args[0].values()) + 1)])
-        query = f"INSERT INTO {table_name} ({columns}) VALUES ({values_count})"
-        await self.connection.executemany(query, [tuple(d.values()) for d in args])
+    async def copy_to_db(
+        self, table_name: str, fetched_data: list[dict], batch_size: int = 10_000
+    ) -> None:
+        columns = list(fetched_data[0].keys())
 
-    # async def insert_many(self, table_name: str, source: Path, args: list[dict]):
-    #     await self.connection.copy_to_table(
-    #         table_name, source=source, records=[tuple(d.values()) for d in args]
-    #     )
+        if "birthday" in columns:
+            for row in fetched_data:
+                row["birthday"] = datetime.datetime.fromisoformat(row["birthday"])
+
+        batch = []
+
+        records = [tuple(row.values()) for row in fetched_data]
+
+        await self.connection.copy_records_to_table(
+            table_name,
+            records=records,
+            columns=columns,
+        )
 
     async def clear_data(self) -> None:
         await self.execute("DROP TABLE IF EXISTS students")

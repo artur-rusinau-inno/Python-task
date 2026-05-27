@@ -20,17 +20,21 @@ async def pipeline(students: Path, rooms: Path, format: str, output: Path):
     await db.init_db()
     rooms_obj = FileManager().read_json_path(rooms)
     students_obj = FileManager().read_json_path(students)
-    await db.insert_many_query("rooms", rooms_obj.data)
-    await db.insert_many_query("students", students_obj.data)
+    await db.copy_to_db("rooms", rooms_obj.data)
+    await db.copy_to_db("students", students_obj.data)
+
     for script in settings.SQL_SCRIPTS_FOLDER.iterdir():
         query: str = script.read_text()
-        try:
-            records: list[asyncpg.Record] = await db.connection.fetch(query)
-            result: list[dict] = [dict(i) for i in records]
+        if query.find("SELECT") == -1:
+            await db.execute(query)
+        else:
+            try:
+                records: list[asyncpg.Record] = await db.fetch(query)
+                result: list[dict] = [dict(i) for i in records]
 
-        except Exception as e:
-            print(f"ERROR WHILE EXECUTING {script.name} FILE\n{e}")
-            continue
+            except Exception as e:
+                print(f"ERROR WHILE EXECUTING {script.name} FILE\n{e}")
+                continue
 
         obj = FileManager().read_fetched_data(result)
         obj.save(

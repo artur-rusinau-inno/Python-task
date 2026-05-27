@@ -7,7 +7,7 @@ from typing import Self
 
 import xmltodict
 
-from src.config.settings import OUTPUT_FOLDER_PATH, OUTPUT_FORMATS_AVAILABLE
+from src.config.settings import settings
 
 
 class FileManager:
@@ -39,7 +39,7 @@ class FileManager:
 
     def save(
         self,
-        output_path: Path = OUTPUT_FOLDER_PATH,
+        output_path: Path = settings.OUTPUT_FOLDER_PATH,
         output_file_name: str = None,
         output_file_format: str = "json",
     ) -> Path:
@@ -52,7 +52,7 @@ class FileManager:
 
         output_file_format: str = output_file_format.lower()
 
-        if output_file_format not in OUTPUT_FORMATS_AVAILABLE:
+        if output_file_format not in settings.OUTPUT_FORMATS_AVAILABLE:
             raise ValueError(f'UNKNOWN "{output_file_format.upper()}" FORMAT')
 
         try:
@@ -73,7 +73,7 @@ class FileManager:
         return output_file
 
     async def clear_output_folder(
-        self, folder_path: Path = OUTPUT_FOLDER_PATH, minutes: int = 0
+        self, folder_path: Path = settings.OUTPUT_FOLDER_PATH, minutes: int = 0
     ) -> None:
         if not folder_path.exists():
             return

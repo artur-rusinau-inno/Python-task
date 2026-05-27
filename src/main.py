@@ -6,12 +6,7 @@ import typer
 
 from src.app.db_manager import db_manager as db
 from src.app.file_manager import FileManager
-from src.config.settings import (
-    OUTPUT_FOLDER_PATH,
-    ROOMS_DATA_FILE_PATH,
-    SQL_SCRIPTS_FOLDER,
-    STUDENTS_DATA_FILE_PATH,
-)
+from src.config.settings import settings
 
 app = typer.Typer()
 
@@ -25,7 +20,7 @@ async def pipeline(students: Path, rooms: Path, format: str, output: Path):
     students_obj = FileManager().read_json_path(students)
     await db.insert_many_query("rooms", rooms_obj.data)
     await db.insert_many_query("students", students_obj.data)
-    for script in SQL_SCRIPTS_FOLDER.iterdir():
+    for script in settings.SQL_SCRIPTS_FOLDER.iterdir():
         query: str = script.read_text()
         try:
             records: list[asyncpg.Record] = await db.connection.fetch(query)
@@ -46,10 +41,10 @@ async def pipeline(students: Path, rooms: Path, format: str, output: Path):
 
 @app.command()
 def main(
-    students: Path = STUDENTS_DATA_FILE_PATH,
-    rooms: Path = ROOMS_DATA_FILE_PATH,
+    students: Path = settings.STUDENTS_DATA_FILE_PATH,
+    rooms: Path = settings.ROOMS_DATA_FILE_PATH,
     format: str = "json",
-    output: Path = OUTPUT_FOLDER_PATH,
+    output: Path = settings.OUTPUT_FOLDER_PATH,
 ) -> None:
     asyncio.run(pipeline(students, rooms, format, output))
 

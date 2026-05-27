@@ -1,6 +1,6 @@
 import asyncpg
 
-from src.config.settings import DB_CONNECTIONS_DICT
+from src.config.settings import settings
 
 
 class DBManager:
@@ -41,4 +41,4 @@ class DBManager:
         )
 
 
-db_manager = DBManager(DB_CONNECTIONS_DICT)
+db_manager = DBManager(settings.DB_CONNECTIONS_DICT)

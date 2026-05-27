@@ -1,33 +1,37 @@
-import os
 from pathlib import Path
+from typing import Annotated
 
-from dotenv import load_dotenv
+from pydantic import StringConstraints
+from pydantic_settings import BaseSettings
 
-load_dotenv()
+StrLower = Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True)]
 
-BASE_DIR = Path(__file__).parents[2]
 
-ROOMS_DATA_FILE_PATH = BASE_DIR / "input data" / "rooms.json"
-STUDENTS_DATA_FILE_PATH = BASE_DIR / "input data" / "students.json"
+class Settings(BaseSettings):
+    BASE_DIR: Path = Path(__file__).parents[2]
 
-OUTPUT_FOLDER_PATH = Path(os.getenv("OUTPUT_PATH", BASE_DIR / "output data"))
+    ROOMS_DATA_FILE_PATH: Path = BASE_DIR / "input data" / "rooms.json"
+    STUDENTS_DATA_FILE_PATH: Path = BASE_DIR / "input data" / "students.json"
 
-OUTPUT_FORMATS_AVAILABLE = (
-    os.getenv("OUTPUT_FORMATS_AVAILABLE", "json xml").lower().split()
-)
+    OUTPUT_FOLDER_PATH: Path = BASE_DIR / "output data"
 
-SQL_SCRIPTS_FOLDER = BASE_DIR / "src" / "scripts"
+    OUTPUT_FORMATS_AVAILABLE: list[str] = ["json", "xml"]
 
-DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "password123")
-DB_USER = os.getenv("POSTGRES_USER", "postgres")
-DB_NAME = os.getenv("POSTGRES_DB", "postgres")
-DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
-DB_PORT = os.getenv("POSTGRES_PORT", 5432)
+    SQL_SCRIPTS_FOLDER: Path = BASE_DIR / "src" / "scripts"
 
-DB_CONNECTIONS_DICT = {
-    "database": DB_NAME,
-    "user": DB_USER,
-    "password": DB_PASSWORD,
-    "host": DB_HOST,
-    "port": DB_PORT,
-}
+    DB_PASSWORD: str = "password123"
+    DB_USER: str = "postgres"
+    DB_NAME: str = "postgres"
+    DB_HOST: str = "localhost"
+    DB_PORT: int = 5432
+
+    DB_CONNECTIONS_DICT: dict = {
+        "database": DB_NAME,
+        "user": DB_USER,
+        "password": DB_PASSWORD,
+        "host": DB_HOST,
+        "port": DB_PORT,
+    }
+
+
+settings = Settings()

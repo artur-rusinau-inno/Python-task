@@ -1,26 +1,13 @@
 import asyncpg
 
-from src.config.settings import settings
-
 
 class DBManager:
     def __init__(self, db_dict: dict[str, str | int]) -> None:
-        self.connection: asyncpg.Connection = None
+        self.connection: asyncpg.Connection | None = None
         self.db_dict = db_dict
 
     async def db_connect(self) -> None:
         self.connection = await asyncpg.connect(**self.db_dict)
-
-    # async def insert_rooms(self, rooms: list[dict]) -> None:
-    #     await self.connection.executemany(
-    #         "INSERT INTO rooms (id, name) VALUES (%1, %2)", rooms
-    #     )
-
-    # async def insert_students(self, students: list[dict]) -> None:
-    #     await self.connection.executemany(
-    #         "INSERT INTO students (birthday, id, name, room, sex) VALUES ($1, $2, $3, $4, $5)",
-    #         [tuple(d.values()) for d in students],
-    # )
 
     async def insert_many_query(self, table_name: str, args: list[dict]):
         columns = ", ".join(args[0].keys())
@@ -39,6 +26,3 @@ class DBManager:
         await self.connection.execute(
             "CREATE TABLE IF NOT EXISTS students (birthday TIMESTAMP, id INT PRIMARY KEY, name VARCHAR(255), room INT REFERENCES rooms(id), sex VARCHAR(1))"
         )
-
-
-db_manager = DBManager(settings.DB_CONNECTIONS_DICT)

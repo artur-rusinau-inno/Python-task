@@ -4,11 +4,13 @@ from pathlib import Path
 import asyncpg
 import typer
 
-from src.app.db_manager import db_manager as db
+from src.app.db_manager import DBManager
 from src.app.file_manager import FileManager
 from src.config.settings import settings
 
 app = typer.Typer()
+
+db = DBManager(settings.DB_CONNECTIONS_DICT)
 
 
 async def pipeline(students: Path, rooms: Path, format: str, output: Path):

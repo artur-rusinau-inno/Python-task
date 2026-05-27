@@ -7,6 +7,22 @@ from pydantic_settings import BaseSettings
 StrLower = Annotated[str, StringConstraints(strip_whitespace=True, to_lower=True)]
 
 
+class TestDBSettings(BaseSettings):
+    TEST_POSTGRES_PASSWORD: str = "test"
+    TEST_POSTGRES_USER: str = "test"
+    TEST_POSTGRES_DB: str = "test"
+    TEST_POSTGRES_HOST: str = "localhost"
+    TEST_POSTGRES_PORT: int = 5433
+
+
+class DBSettings(BaseSettings):
+    POSTGRES_PASSWORD: str = "password123"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_DB: str = "rooms_students"
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
+
+
 class Settings(BaseSettings):
     BASE_DIR: Path = Path(__file__).parents[2]
 
@@ -19,19 +35,22 @@ class Settings(BaseSettings):
 
     SQL_SCRIPTS_FOLDER: Path = BASE_DIR / "src" / "scripts"
 
-    DB_PASSWORD: str = "password123"
-    DB_USER: str = "postgres"
-    DB_NAME: str = "postgres"
-    DB_HOST: str = "localhost"
-    DB_PORT: int = 5432
+    db_settings: DBSettings = DBSettings()
+    test_db_settings: TestDBSettings = TestDBSettings()
 
-    DB_CONNECTIONS_DICT: dict = {
-        "database": DB_NAME,
-        "user": DB_USER,
-        "password": DB_PASSWORD,
-        "host": DB_HOST,
-        "port": DB_PORT,
-    }
+    @property
+    def pg_dsn(self):
+        return (
+            f"postgresql://{self.db_settings.POSTGRES_USER}:{self.db_settings.POSTGRES_PASSWORD}"
+            f"@{self.db_settings.POSTGRES_HOST}:{self.db_settings.POSTGRES_PORT}/{self.db_settings.POSTGRES_DB}"
+        )
+
+    @property
+    def test_pg_dsn(self):
+        return (
+            f"postgresql://{self.test_db_settings.TEST_POSTGRES_USER}:{self.test_db_settings.TEST_POSTGRES_PASSWORD}"
+            f"@{self.test_db_settings.TEST_POSTGRES_HOST}:{self.test_db_settings.TEST_POSTGRES_PORT}/{self.test_db_settings.TEST_POSTGRES_DB}"
+        )
 
 
 settings = Settings()

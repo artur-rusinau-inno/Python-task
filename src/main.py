@@ -10,7 +10,7 @@ from src.config.settings import settings
 
 app = typer.Typer()
 
-db = DBManager(settings.DB_CONNECTIONS_DICT)
+db = DBManager(settings.pg_dsn)
 
 
 async def pipeline(students: Path, rooms: Path, format: str, output: Path):

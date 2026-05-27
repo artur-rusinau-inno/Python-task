@@ -1,19 +1,12 @@
 import pytest
 
 from src.app.db_manager import DBManager
-
-db_dict = {
-    "database": "test",
-    "user": "test",
-    "password": "test",
-    "host": "localhost",
-    "port": 5433,
-}
+from src.config.settings import settings
 
 
 @pytest.fixture
 async def db():
-    db = DBManager(db_dict)
+    db = DBManager(settings.test_pg_dsn)
     await db.db_connect()
     return db
 

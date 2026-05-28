@@ -5,12 +5,13 @@ import asyncpg
 import typer
 
 from managers.db_manager import DBManager
-from managers.file_manager import FileManager
+from managers.DEPRECARED_file_manager import FileManager
+from managers.read_manager import ReadManager
 from src.config.settings import settings
 
 app = typer.Typer()
 
-db = DBManager(settings.pg_dsn)
+db = DBManager("postgres")
 
 
 async def pipeline(students: Path, rooms: Path, format: str, output: Path):
@@ -18,10 +19,10 @@ async def pipeline(students: Path, rooms: Path, format: str, output: Path):
     await db.clear_data()
     await FileManager().clear_output_folder()
     await db.init_db()
-    rooms_obj = FileManager().read_json_path(rooms)
-    students_obj = FileManager().read_json_path(students)
-    await db.copy_to_db("rooms", rooms_obj.data)
-    await db.copy_to_db("students", students_obj.data)
+    rooms_batches = ReadManager(rooms).read_local()
+    students_batches = ReadManager(students).read_local()
+    await db.copy_to_db("rooms", rooms_batches)
+    await db.copy_to_db("students", students_batches)
 
     for script in settings.SQL_SCRIPTS_FOLDER.iterdir():
         query: str = script.read_text()

@@ -1,6 +1,6 @@
 import pytest
 
-from managers.file_manager import FileManager
+from managers.DEPRECARED_file_manager import FileManager
 
 
 @pytest.fixture

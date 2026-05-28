@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import asyncpg
 from asyncpg import Connection, Pool, Record
 from asyncpg.prepared_stmt import PreparedStatement
@@ -10,6 +12,7 @@ class PostgresAdapter:
 
     async def init(self) -> None:
         await self._connect()
+        await self.clear_data()
         await self.pool.execute("CREATE TABLE IF NOT EXISTS rooms (id INT PRIMARY KEY, name VARCHAR(255))")
         await self.pool.execute(
             "CREATE TABLE IF NOT EXISTS students (birthday TIMESTAMP, id INT PRIMARY KEY, name VARCHAR(255), room INT REFERENCES rooms(id), sex VARCHAR(1))"
@@ -35,6 +38,10 @@ class PostgresAdapter:
     async def load_batch(self, table_name: str, data: list[dict]) -> None:
 
         columns = tuple(data[0].keys())
+
+        if "birthday" in columns:
+            for d in data:
+                d["birthday"] = datetime.fromisoformat(d["birthday"])
 
         records = [tuple(d.values()) for d in data]
 

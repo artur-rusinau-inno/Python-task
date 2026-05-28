@@ -1,7 +1,7 @@
 from typing import Iterable, Literal
 
-from db_adapters.postgres_adapter import PostgresAdapter
 from src.config.settings import settings
+from src.db_adapters.postgres_adapter import PostgresAdapter
 
 
 class DBManager:
@@ -24,13 +24,6 @@ class DBManager:
     async def clear_data(self) -> None:
         await self.db.clear_data()
 
-    async def upload_data(self, data: Iterable) -> None:
-        batch = []
-        for i in data:
-            batch.append(i)
-            if len(batch) >= settings.UPLOAD_BATCH_SIZE:
-                await self.db.load_batch(batch)
-                batch = []
-
-        if batch:
-            await self.db.load_batch(batch)
+    async def upload_data(self, table_name: str, data: Iterable) -> None:
+        for d in data:
+            await self.db.load_batch(table_name, d)

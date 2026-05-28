@@ -33,9 +33,7 @@ class Settings(BaseSettings):
 
     SQL_SCRIPTS_FOLDER: Path = BASE_DIR / "src" / "scripts"
 
-    READ_BATCH_SIZE: int = 100
-
-    UPLOAD_BATCH_SIZE: int = 50_000
+    BATCH_SIZE: int = 50_000
 
     db_settings: DBSettings = DBSettings()
     test_db_settings: TestDBSettings = TestDBSettings()

@@ -23,7 +23,7 @@ class LocalReader:
 
             for obj in objects:
                 batch.append(obj)
-                if len(batch) >= settings.READ_BATCH_SIZE:
+                if len(batch) >= settings.BATCH_SIZE:
                     yield batch
                     batch = []
 

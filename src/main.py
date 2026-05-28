@@ -1,55 +1,48 @@
 import asyncio
 from pathlib import Path
+from typing import Annotated
 
-import asyncpg
 import typer
+from pydantic import HttpUrl, TypeAdapter
 
-from managers.db_manager import DBManager
-from managers.DEPRECARED_file_manager import FileManager
-from managers.read_manager import ReadManager
 from src.config.settings import settings
+from src.managers.db_manager import DBManager
+from src.managers.read_manager import ReadManager
+from src.managers.save_manager import SaveManager
 
 app = typer.Typer()
 
-db = DBManager("postgres")
+
+def url_parser(url: str) -> HttpUrl:
+    return TypeAdapter(HttpUrl).validate_python(url)
 
 
-async def pipeline(students: Path, rooms: Path, format: str, output: Path):
-    await db.db_connect()
-    await db.clear_data()
-    await FileManager().clear_output_folder()
-    await db.init_db()
-    rooms_batches = ReadManager(rooms).read_local()
-    students_batches = ReadManager(students).read_local()
-    await db.copy_to_db("rooms", rooms_batches)
-    await db.copy_to_db("students", students_batches)
+async def pipeline(students: Path | HttpUrl, rooms: Path | HttpUrl, format: str, output: Path):
+    # ЧТЕНИЕ ОРИГИНАЛЬНЫХ ФАЙЛОВ
+    students_generator = ReadManager(students).read()
+    rooms_generator = ReadManager(rooms).read()
 
-    for script in settings.SQL_SCRIPTS_FOLDER.iterdir():
-        query: str = script.read_text()
-        if query.find("SELECT") == -1:
-            await db.execute(query)
-        else:
-            try:
-                records: list[asyncpg.Record] = await db.fetch(query)
-                result: list[dict] = [dict(i) for i in records]
+    # ИНИЦИАЛИЗАЦИЯ БД
+    db = DBManager("postgres")
+    await db.init()
 
-            except Exception as e:
-                print(f"ERROR WHILE EXECUTING {script.name} FILE\n{e}")
-                continue
+    # ЗАГРУЗКА ДАННЫХ В БД
+    await db.upload_data(students_generator)
+    await db.upload_data(rooms_generator)
 
-        obj = FileManager().read_fetched_data(result)
-        obj.save(
-            output_path=output,
-            output_file_name=f"{script.stem[:2]}_OUTPUT{script.stem[2:]}",
-            output_file_format=format,
-        )
-    await db.connection.close()
+    # ВЫПОЛНЕНИЕ СКРИПТОВ
+    coros = [db.execute_query(script.read_text()) for script in settings.SQL_SCRIPTS_FOLDER.iterdir()]
+    results = await asyncio.gather(*coros)
+
+    # СОХРАНЕНИЕ РЕЗУЛЬТАТА
+    for result in results:
+        SaveManager(result).save(output, output_file_format=format)
 
 
 @app.command()
 def main(
-    students: Path = settings.STUDENTS_DATA_FILE_PATH,
-    rooms: Path = settings.ROOMS_DATA_FILE_PATH,
+    students: Path | Annotated[HttpUrl, typer.Argument(parser=url_parser)] = settings.STUDENTS_DATA_FILE_PATH,
+    rooms: Path | Annotated[HttpUrl, typer.Argument(parser=url_parser)] = settings.ROOMS_DATA_FILE_PATH,
     format: str = "json",
     output: Path = settings.OUTPUT_FOLDER_PATH,
 ) -> None:

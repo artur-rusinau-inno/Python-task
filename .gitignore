@@ -14,3 +14,4 @@ wheels/
 *.xml
 !rooms.json
 !students.json
+*.ipynb

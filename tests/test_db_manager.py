@@ -1,6 +1,6 @@
 import pytest
 
-from managers.db_manager import DBManager
+from src.managers import DBManager
 
 
 @pytest.fixture

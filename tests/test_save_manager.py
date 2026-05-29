@@ -1,5 +1,7 @@
 import pytest
 
+from src.managers import SaveManager
+
 
 @pytest.fixture
 def rooms_data():
@@ -22,18 +24,14 @@ def students_data():
     return data
 
 
-def test_file_manager_save(tmp_path, rooms_data, students_data):
-    rooms_obj = FileManager().read_fetched_data(rooms_data)
-    rooms_file = rooms_obj.save(tmp_path, output_file_format="json")
+def test_save_manager(tmp_path, rooms_data, students_data):
+    rooms_path = SaveManager(rooms_data).save(tmp_path)
+    students_path = SaveManager(students_data).save(tmp_path)
 
-    students_obj = FileManager().read_fetched_data(students_data)
-    students_file = students_obj.save(tmp_path, output_file_format="json")
-
-    assert rooms_file.exists()
-    assert students_file.exists()
+    assert rooms_path.is_file()
+    assert students_path.is_file()
 
 
 def test_unknown_format(tmp_path, rooms_data):
     with pytest.raises(ValueError):
-        obj = FileManager().read_fetched_data(rooms_data)
-        obj.save(tmp_path, output_file_format="mp3")
+        SaveManager(rooms_data).save(tmp_path, "mp3")

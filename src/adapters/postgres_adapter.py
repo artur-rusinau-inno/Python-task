@@ -12,11 +12,15 @@ class PostgresAdapter:
 
     async def init(self) -> None:
         await self._connect()
-        await self._clear_data()
+        await self.clear_data()
         await self.pool.execute("CREATE TABLE IF NOT EXISTS rooms (id INT PRIMARY KEY, name VARCHAR(255))")
         await self.pool.execute(
             "CREATE TABLE IF NOT EXISTS students (birthday TIMESTAMP, id INT PRIMARY KEY, name VARCHAR(255), room INT REFERENCES rooms(id), sex VARCHAR(1))"
         )
+
+    async def clear_data(self) -> None:
+        await self.pool.execute("DROP TABLE IF EXISTS students")
+        await self.pool.execute("DROP TABLE IF EXISTS rooms")
 
     async def execute_query(self, query: str, *args) -> list[dict]:
         async with self.pool.acquire() as con:
@@ -44,7 +48,3 @@ class PostgresAdapter:
 
     async def _connect(self) -> None:
         self.pool = await asyncpg.create_pool(self.db_dsn)
-
-    async def _clear_data(self) -> None:
-        await self.pool.execute("DROP TABLE IF EXISTS students")
-        await self.pool.execute("DROP TABLE IF EXISTS rooms")

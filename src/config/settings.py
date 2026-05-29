@@ -27,13 +27,13 @@ class Settings(BaseSettings):
     ROOMS_DATA_FILE_PATH: Path = BASE_DIR / "input data" / "rooms.json"
     STUDENTS_DATA_FILE_PATH: Path = BASE_DIR / "input data" / "students.json"
 
-    OUTPUT_FOLDER_PATH: Path = BASE_DIR / "output data"
+    OUTPUT_FOLDER_PATH: Path = BASE_DIR / "output_data"
 
     OUTPUT_FORMATS_AVAILABLE: list[str] = ["json", "xml"]
 
     SQL_SCRIPTS_FOLDER: Path = BASE_DIR / "src" / "scripts"
 
-    BATCH_SIZE: int = 50_000
+    BATCH_SIZE: int = 100
 
     db_settings: DBSettings = DBSettings()
     test_db_settings: TestDBSettings = TestDBSettings()

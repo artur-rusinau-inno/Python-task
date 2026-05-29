@@ -1,10 +1,12 @@
+from pathlib import Path
+
 import httpx
 from pydantic import HttpUrl, TypeAdapter, ValidationError
 
 
-def validate_url(value: str) -> HttpUrl:
+def validate_url(value: Path) -> HttpUrl:
     url_parser = TypeAdapter(HttpUrl)
-    url_value = url_parser.validate_python(value)
+    url_value = url_parser.validate_python(value.as_posix())
 
     response = httpx.head(url_value)
 

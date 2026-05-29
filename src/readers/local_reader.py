@@ -21,12 +21,18 @@ class LocalReader:
             objects = ijson.items(f, "item")
 
             batch: list[dict] = []
+            i = 1
 
             for obj in objects:
                 batch.append(obj)
                 if len(batch) >= settings.BATCH_SIZE:
+                    print(f"попытка отправить батч №{i}, размер батча {len(batch)}")
                     yield batch
+                    print("батч успешно отправлен\n")
                     batch = []
+                    i += 1
 
             if batch:
+                print(f"попытка отправить батч №{i}, размер батча {len(batch)}")
                 yield batch
+                print("все данные успешно отправлены\n")

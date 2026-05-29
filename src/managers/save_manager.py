@@ -4,14 +4,13 @@ import string
 from pathlib import Path
 
 import xmltodict
-from asyncpg import Record
 
 from src.config.settings import settings
 
 
 class SaveManager:
-    def __init__(self, records: list[Record]):
-        self.records = records
+    def __init__(self, data: list[dict]):
+        self.data = data
 
     def save(
         self,
@@ -52,9 +51,9 @@ class SaveManager:
         return result
 
     def _save_to_json(self, output_file: Path) -> None:
-        json_string = json.dumps(self.records, indent=4, default=str)
+        json_string = json.dumps(self.data, indent=4, default=str)
         output_file.write_text(json_string)
 
     def _save_to_xml(self, output_file: Path) -> None:
-        xml_string = xmltodict.unparse({"items": {"item": self.records}}, pretty=True)
+        xml_string = xmltodict.unparse({"items": {"item": self.data}}, pretty=True)
         output_file.write_text(xml_string)

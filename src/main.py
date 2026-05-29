@@ -17,6 +17,8 @@ async def pipeline(students: Path | HttpUrl, rooms: Path | HttpUrl, format: str,
     students = validate_input(students)
     rooms = validate_input(rooms)
 
+    output = validate_input(output, folder=True)
+
     # ЧТЕНИЕ ФАЙЛОВ
     students_generator = ReadManager(students).read()
     rooms_generator = ReadManager(rooms).read()
@@ -40,8 +42,8 @@ async def pipeline(students: Path | HttpUrl, rooms: Path | HttpUrl, format: str,
 
 @app.command()
 def main(
-    students: str = settings.STUDENTS_DATA_FILE_PATH,
-    rooms: str = settings.ROOMS_DATA_FILE_PATH,
+    students: Path = settings.STUDENTS_DATA_FILE_PATH,
+    rooms: Path = settings.ROOMS_DATA_FILE_PATH,
     format: str = "json",
     output: Path = settings.OUTPUT_FOLDER_PATH,
 ) -> None:

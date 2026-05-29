@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import asyncpg
+import sqlparse
 from asyncpg import Connection, Pool, Record
 from asyncpg.prepared_stmt import PreparedStatement
 
@@ -10,9 +11,7 @@ class PostgresAdapter:
         self.pool: Pool | None = None
         self.db_dsn = db_dsn
 
-    async def init(self) -> None:
-        await self._connect()
-        await self.clear_data()
+    async def create_tables(self) -> None:
         await self.pool.execute("CREATE TABLE IF NOT EXISTS rooms (id INT PRIMARY KEY, name VARCHAR(255))")
         await self.pool.execute(
             "CREATE TABLE IF NOT EXISTS students (birthday TIMESTAMP, id INT PRIMARY KEY, name VARCHAR(255), room INT REFERENCES rooms(id), sex VARCHAR(1))"
@@ -25,10 +24,16 @@ class PostgresAdapter:
     async def execute_query(self, query: str, *args) -> list[dict]:
         async with self.pool.acquire() as con:
             con: Connection
-            prepared_query: PreparedStatement = await con.prepare(query)
+            cleaned_query = sqlparse.format(query, strip_comments=True).strip()
+
+            if cleaned_query.upper().startswith("CREATE"):
+                await con.execute(cleaned_query, *args)
+                return []
+
+            prepared_query: PreparedStatement = await con.prepare(cleaned_query)
 
             if not prepared_query.get_attributes():
-                await con.execute(query, *args)
+                await con.execute(cleaned_query, *args)
                 return []
 
             results: list[Record] = await prepared_query.fetch(*args)
@@ -46,5 +51,5 @@ class PostgresAdapter:
 
         await self.pool.copy_records_to_table(table_name, columns=columns, records=records)
 
-    async def _connect(self) -> None:
+    async def init(self) -> None:
         self.pool = await asyncpg.create_pool(self.db_dsn)

@@ -24,8 +24,8 @@ class Settings(BaseSettings):
 
     BASE_DIR: Path = Path(__file__).parents[2]
 
-    ROOMS_DATA_FILE_PATH: Path = BASE_DIR / "input data" / "rooms.json"
-    STUDENTS_DATA_FILE_PATH: Path = BASE_DIR / "input data" / "students.json"
+    ROOMS_DATA_FILE_PATH: Path = BASE_DIR / "input_data" / "rooms.json"
+    STUDENTS_DATA_FILE_PATH: Path = BASE_DIR / "input_data" / "students.json"
 
     OUTPUT_FOLDER_PATH: Path = BASE_DIR / "output_data"
 
@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     SQL_SCRIPTS_FOLDER: Path = BASE_DIR / "src" / "scripts"
 
     BATCH_SIZE: int = 100
+
+    GOOGLE_ACCESS_TOKEN: str
 
     db_settings: DBSettings = DBSettings()
     test_db_settings: TestDBSettings = TestDBSettings()

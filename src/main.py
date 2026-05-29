@@ -1,17 +1,16 @@
 import asyncio
-from pathlib import Path
 
 import typer
-from pydantic import HttpUrl
 
 from src.config.settings import settings
 from src.managers import DBManager, ReadManager, SaveManager
+from src.utils import clean_folder
 from src.validators import validate_input
 
 app = typer.Typer()
 
 
-async def pipeline(students: Path | HttpUrl, rooms: Path | HttpUrl, format: str, output: Path) -> None:
+async def pipeline(students: str, rooms: str, format: str, output: str) -> None:
 
     # ПРОВЕРКА ВХОДНЫХ ДАННЫХ
     students = validate_input(students)
@@ -27,13 +26,22 @@ async def pipeline(students: Path | HttpUrl, rooms: Path | HttpUrl, format: str,
     db = DBManager("postgres")
     await db.init()
 
+    # УДАЛЕНИЕ СТАРЫХ ТАБЛИЦ
+    await db.clear_data()
+
+    # СОЗДАНИЕ НОВЫХ ТАБЛИЦ
+    await db.create_tables()
+
     # ЗАГРУЗКА ДАННЫХ В БД
     await db.upload_data("rooms", rooms_generator)
     await db.upload_data("students", students_generator)
 
     # ВЫПОЛНЕНИЕ СКРИПТОВ
-    coros = [db.execute_query(script.read_text()) for script in settings.SQL_SCRIPTS_FOLDER.iterdir()]
+    coros = [db.execute_query(script.read_text(encoding="utf-8")) for script in settings.SQL_SCRIPTS_FOLDER.iterdir()]
     results = await asyncio.gather(*coros)
+
+    # ОЧИСТКА ПАПКИ
+    clean_folder(output)
 
     # СОХРАНЕНИЕ РЕЗУЛЬТАТА
     for result in results:
@@ -42,10 +50,10 @@ async def pipeline(students: Path | HttpUrl, rooms: Path | HttpUrl, format: str,
 
 @app.command()
 def main(
-    students: Path = settings.STUDENTS_DATA_FILE_PATH,
-    rooms: Path = settings.ROOMS_DATA_FILE_PATH,
+    students: str = str(settings.STUDENTS_DATA_FILE_PATH),
+    rooms: str = str(settings.ROOMS_DATA_FILE_PATH),
     format: str = "json",
-    output: Path = settings.OUTPUT_FOLDER_PATH,
+    output: str = str(settings.OUTPUT_FOLDER_PATH),
 ) -> None:
     asyncio.run(pipeline(students, rooms, format, output))
 

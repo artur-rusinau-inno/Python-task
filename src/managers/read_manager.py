@@ -3,7 +3,7 @@ from typing import Iterator
 
 from pydantic import HttpUrl
 
-from src.readers.google_reader import GoogleReader
+from src.readers.google_reader import GoogleDriveReader
 from src.readers.local_reader import LocalReader
 
 
@@ -29,8 +29,8 @@ class ReadManager:
 
     def _read_from_url(self) -> Iterator[list[dict]]:
         self.file_path: HttpUrl
-        if "google" in self.file_path.host:
-            yield from GoogleReader(self.file_path).read_batch()
+        if self.file_path.host == "drive.google.com":
+            yield from GoogleDriveReader(self.file_path).read_batch()
 
         else:
             raise ValueError("UNSUPPORTED URL TYPE")

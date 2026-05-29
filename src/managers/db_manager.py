@@ -19,6 +19,9 @@ class DBManager:
 
         await self.db.init()
 
+    async def create_tables(self) -> None:
+        await self.db.create_tables()
+
     async def execute_query(self, query: str, *args) -> list[dict]:
         return await self.db.execute_query(query, *args)
 

@@ -35,4 +35,6 @@ class LocalReader:
             if batch:
                 print(f"попытка отправить батч №{i}, размер батча {len(batch)}")
                 yield batch
-                print("все данные успешно отправлены\n")
+                print("батч успешно отправлен\n")
+
+        print("ВСЕ ДАННЫЕ УСПЕШНО ОТПРАВЛЕНЫ\n")

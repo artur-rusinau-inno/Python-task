@@ -24,7 +24,7 @@ class SaveManager:
         output_file_format: str = output_file_format.lower()
 
         if output_file_format not in settings.OUTPUT_FORMATS_AVAILABLE:
-            raise ValueError(f'UNKNOWN "{output_file_format.upper()}" FORMAT')
+            raise ValueError(f'UNSUPPORTED "{output_file_format.upper()}" FORMAT')
 
         try:
             output_file: Path = output_path / f"{self._get_random_name()}.{output_file_format}"
@@ -35,7 +35,7 @@ class SaveManager:
                 case "xml":
                     self._save_to_xml(output_file)
                 case _:
-                    raise ValueError(f'FORMAT "{output_file_format.upper()}" NOT SET')
+                    pass
 
         except Exception as e:
             print("UNKNOWN EROR")

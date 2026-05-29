@@ -1,7 +1,5 @@
 import pytest
 
-from managers.DEPRECARED_file_manager import FileManager
-
 
 @pytest.fixture
 def rooms_data():

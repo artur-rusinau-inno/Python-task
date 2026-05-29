@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Iterator
 
 from pydantic import HttpUrl
 
@@ -7,11 +8,11 @@ from src.readers.local_reader import LocalReader
 
 
 class ReadManager:
-    def __init__(self, url_or_path: Path | HttpUrl):
+    def __init__(self, url_or_path: Path | HttpUrl) -> None:
         self.file_path = url_or_path
         self.file_path_type = None
 
-    def read(self):
+    def read(self) -> Iterator[list[dict]]:
 
         if isinstance(self.file_path, Path):
             yield from self._read_local()
@@ -22,11 +23,11 @@ class ReadManager:
         else:
             raise ValueError("INVALID PATH OR URL")
 
-    def _read_local(self):
+    def _read_local(self) -> Iterator[list[dict]]:
         self.file_path: Path
         yield from LocalReader(self.file_path).read_batch()
 
-    def _read_from_url(self):
+    def _read_from_url(self) -> Iterator[list[dict]]:
         self.file_path: HttpUrl
         if "google" in self.file_path.host:
             yield from GoogleReader(self.file_path).read_batch()

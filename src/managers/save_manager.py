@@ -16,15 +16,11 @@ class SaveManager:
     def save(
         self,
         output_path: Path = settings.OUTPUT_FOLDER_PATH,
-        output_file_name: str = None,
         output_file_format: str = "json",
     ) -> Path:
 
         if not output_path.exists():
             output_path.mkdir(parents=True, exist_ok=True)
-
-        if not output_file_name:
-            output_file_name: str = self._get_random_name()
 
         output_file_format: str = output_file_format.lower()
 
@@ -32,7 +28,7 @@ class SaveManager:
             raise ValueError(f'UNKNOWN "{output_file_format.upper()}" FORMAT')
 
         try:
-            output_file: Path = output_path / f"{output_file_name}.{output_file_format}"
+            output_file: Path = output_path / f"{self._get_random_name()}.{output_file_format}"
 
             match output_file_format:
                 case "json":

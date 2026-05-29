@@ -33,7 +33,7 @@ class Settings(BaseSettings):
 
     SQL_SCRIPTS_FOLDER: Path = BASE_DIR / "src" / "scripts"
 
-    BATCH_SIZE: int = 100
+    BATCH_SIZE: int = 50000
 
     GOOGLE_ACCESS_TOKEN: str
 

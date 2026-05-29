@@ -45,7 +45,8 @@ async def pipeline(students: str, rooms: str, format: str, output: str) -> None:
 
     # СОХРАНЕНИЕ РЕЗУЛЬТАТА
     for result in results:
-        SaveManager(result).save(output, output_file_format=format)
+        if result:
+            SaveManager(result).save(output, output_file_format=format)
 
 
 @app.command()

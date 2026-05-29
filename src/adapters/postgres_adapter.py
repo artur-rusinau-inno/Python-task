@@ -21,20 +21,20 @@ class PostgresAdapter:
         await self.pool.execute("DROP TABLE IF EXISTS students")
         await self.pool.execute("DROP TABLE IF EXISTS rooms")
 
-    async def execute_query(self, query: str, *args) -> list[dict]:
+    async def execute_query(self, query: str, *args) -> list[dict] | None:
         async with self.pool.acquire() as con:
             con: Connection
             cleaned_query = sqlparse.format(query, strip_comments=True).strip()
 
             if cleaned_query.upper().startswith("CREATE"):
                 await con.execute(cleaned_query, *args)
-                return []
+                return None
 
             prepared_query: PreparedStatement = await con.prepare(cleaned_query)
 
             if not prepared_query.get_attributes():
                 await con.execute(cleaned_query, *args)
-                return []
+                return None
 
             results: list[Record] = await prepared_query.fetch(*args)
             return [dict(result) for result in results]
